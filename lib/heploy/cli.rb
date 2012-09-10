@@ -1,3 +1,5 @@
-class Heploy::CLI < Thor
+module Heploy
+  class CLI < Thor
 
+  end
 end
