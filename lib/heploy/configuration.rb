@@ -9,6 +9,10 @@ module Heploy
                   :heroku_email,
                   :heroku_api_key
 
+    def self.find
+      load Dir["config/heploy.rb"].first
+    end
+
     def initialize
       @development_branch = "dev"
       @staging_branch = "staging"
