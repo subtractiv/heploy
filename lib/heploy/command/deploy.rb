@@ -1,5 +1,6 @@
 require 'git'
 require 'heroku-api'
+require 'rake'
 
 class Heploy::Command::Deploy
   class << self
@@ -24,8 +25,8 @@ class Heploy::Command::Deploy
       repo.merge from_branch
       turn_maintenance_on heroku, app_name
       tag_latest_commit(repo, heroku, app_name, to_branch_name)
-      push_to_heroku(repo, to_branch_name)
-      Rake::Task["db:migrate"]
+      push_to_heroku(repo, to_branch_name, app_name)
+      ::Rake::Task["db:migrate"]
       heroku.post_ps_restart app_name
       heroku.post_app_maintenance app_name, '0'
       repo.checkout dev_branch
@@ -53,8 +54,9 @@ class Heploy::Command::Deploy
       puts "Error: #{details.message.split(": ").last.capitalize}."
     end
 
-    def push_to_heroku(repo, to_branch_name)
+    def push_to_heroku(repo, to_branch_name, app_name)
       repo.push to_branch_name, "#{to_branch_name}:master", true
+      puts "Pushed codebase to #{app_name}"
     rescue Git::GitExecuteError => details
       puts "Error: could not push to #{to_branch_name}."
       exit
