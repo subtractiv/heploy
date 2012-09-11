@@ -6,12 +6,14 @@ module Heploy
                   :production_branch,
                   :staging_app_name,
                   :production_app_name,
-                  :heroku_email,
                   :heroku_api_key
 
     def self.find
       load Dir["config/heploy.rb"].first
       Heploy.configuration
+    rescue TypeError
+      puts "Error: You don't have a configuration file."
+      exit
     end
 
     def initialize
