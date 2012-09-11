@@ -14,6 +14,7 @@ Gem::Specification.new do |gem|
 
   gem.add_dependency "thor"
   gem.add_dependency "git"
+  gem.add_development_dependency "minitest"
 
   gem.files         = `git ls-files`.split($/)
   gem.executables   = gem.files.grep(%r{^bin/}).map{ |f| File.basename(f) }
