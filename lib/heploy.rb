@@ -3,6 +3,8 @@ require 'heroku'
 
 require 'heploy/version'
 require 'heploy/configuration'
+require 'heploy/command'
+require 'heploy/command/deploy'
 
 module Heploy
   class << self

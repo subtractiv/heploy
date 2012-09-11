@@ -11,6 +11,7 @@ module Heploy
 
     def self.find
       load Dir["config/heploy.rb"].first
+      Heploy.configuration
     end
 
     def initialize

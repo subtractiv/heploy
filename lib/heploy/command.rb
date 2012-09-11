@@ -1,0 +1,3 @@
+class Heploy::Command
+
+end
