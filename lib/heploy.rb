@@ -1,3 +1,6 @@
+require 'git'
+require 'heroku'
+
 require 'heploy/version'
 require 'heploy/configuration'
 
