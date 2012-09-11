@@ -20,11 +20,19 @@ Or install it yourself as:
 
     $ gem install heploy
 
+Then run the installer:
+
+    $ rails g heploy:install
+
+You'll have to fill out the configuration file with some application details and your Heroku information.
+
 ## Usage
+
+I'm trying to keep this is simple as possible
 
 ### Basic usage
 
-Heploy defaults to you using a "dev", "staging" and "production" branch. We'll go over how to change the default later. But for now, here we go.
+Heploy defaults to you using a "dev", "staging" and "production" branch. You can change the defaults in the configuration file. But for now, here we go.
 
 Deploying to staging:
 
@@ -50,10 +58,6 @@ Let's start with `$ heploy staging`. When you run it, you:
 8. Turns maintenace off.
 
 As you might have guessed, `$ heploy production` does pretty much the same thing, except merges the "staging" branch into "production".
-
-### Changing the defaults
-
-I'm looking into the best way to do this now.
 
 ### Other things
 

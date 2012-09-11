@@ -1,5 +1,14 @@
-require "heploy/version"
+require 'heploy/version'
+require 'heploy/configuration'
 
 module Heploy
-  # Your code goes here...
+  class << self
+    attr_accessor :configuration
+  end
+
+  def self.configure
+    self.configuration ||= Configuration.new
+    yield(configuration) if block_given?
+    configuration
+  end
 end
