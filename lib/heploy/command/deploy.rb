@@ -1,6 +1,7 @@
 require 'git'
 require 'heroku-api'
 require 'rake'
+require 'logger'
 
 class Heploy::Command::Deploy
   class << self
@@ -15,7 +16,7 @@ class Heploy::Command::Deploy
     private
 
     def deploy_to(app_name, from_branch_name, to_branch_name, c)
-      repo = Git.open Dir.pwd
+      repo = Git.open Dir.pwd, :log => Logger.new(STDOUT)
       dev_branch = repo.branch c.development_branch
       from_branch = repo.branch from_branch_name
       to_branch = repo.branch to_branch_name
@@ -66,7 +67,7 @@ class Heploy::Command::Deploy
 
     def push_to_heroku(repo, heroku, to_branch_name, app_name)
       puts "Pushing #{to_branch_name} branch to #{app_name}."
-      repo.push to_branch_name, "#{to_branch_name}:master", true
+      # repo.push to_branch_name, "#{to_branch_name}:master", true
       confirm_codebase_push(repo, heroku, app_name)
     rescue Git::GitExecuteError => details
       puts "Error: could not push to #{to_branch_name}."
@@ -79,7 +80,7 @@ class Heploy::Command::Deploy
       if latest_local_commit == latest_heroku_commit
         puts "Completed push successfully."
       else
-        puts "Warning: pushing to #{app_name} wasn't successful."
+        puts "Error: pushing to #{app_name} wasn't successful. Latest local commit is #{latest_local_commit} while the latest Heroku commit is #{latest_heroku_commit}."
       end
     end
 
