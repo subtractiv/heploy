@@ -59,7 +59,7 @@ class Heploy::Command::Deploy
     def tag_latest_commit(repo, heroku, app_name, to_branch_name)
       release = heroku.get_releases(app_name).body.last["name"].gsub(/[[:alpha:]]/, "").to_i + 1
       commit = repo.add_tag "#{to_branch_name}-#{release}"
-      puts "Tagged commit #{commit} as #{to_branch_name}-#{release}."
+      puts "Tagged commit #{commit[0,7]} as #{to_branch_name}-#{release}."
     rescue Git::GitExecuteError => details
       puts "Error: #{details.message.split(": ").last.capitalize}."
     end
