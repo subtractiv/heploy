@@ -24,11 +24,11 @@ class Heploy::Command::Deploy
       repo.checkout to_branch
       repo.merge from_branch
       turn_maintenance_on heroku, app_name
-      tag_latest_commit(repo, heroku, app_name, to_branch_name)
-      push_to_heroku(repo, to_branch_name, app_name)
-      ::Rake::Task["db:migrate"]
+      tag_latest_commit repo, heroku, app_name, to_branch_name
+      push_to_heroku repo, to_branch_name, app_name
+      heroku.post_ps app_name, "rake db:migrate"
       heroku.post_ps_restart app_name
-      heroku.post_app_maintenance app_name, '0'
+      turn_maintenance_off heroku, app_name
       repo.checkout dev_branch
     end
 
@@ -46,10 +46,20 @@ class Heploy::Command::Deploy
       end
     end
 
+    def turn_maintenance_off(heroku, app_name)
+      heroku.post_app_maintenance app_name, '0'
+      if !heroku.get_app_maintenance(app_name).body['maintenance']
+        puts "Turned maintenance mode off."
+      else
+        puts "Error: maintenance mode did not turn off."
+        exit
+      end
+    end
+
     def tag_latest_commit(repo, heroku, app_name, to_branch_name)
       release = heroku.get_releases(app_name).body.last["name"].gsub(/[[:alpha:]]/, "").to_i + 1
-      repo.add_tag "#{to_branch_name}-#{release}"
-      puts "Tagged commit __ as #{to_branch_name}-#{release}."
+      commit = repo.add_tag "#{to_branch_name}-#{release}"
+      puts "Tagged commit #{commit} as #{to_branch_name}-#{release}."
     rescue Git::GitExecuteError => details
       puts "Error: #{details.message.split(": ").last.capitalize}."
     end

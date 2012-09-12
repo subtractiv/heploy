@@ -15,6 +15,7 @@ Gem::Specification.new do |gem|
   gem.add_dependency "thor"
   gem.add_dependency "git"
   gem.add_dependency "heroku"
+  gem.add_dependency "rake"
   gem.add_development_dependency "minitest"
 
   gem.files         = `git ls-files`.split($/)
