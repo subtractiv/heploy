@@ -15,7 +15,7 @@ module Heploy
     desc 'production', 'Deploys your applicationn to your staging server.'
     def production
       config = Heploy::Configuration.find
-      Heploy::Command::Deploy.production config
+      Heploy::Command::Deploy.production config, options['verbose']
     end
 
   end
