@@ -12,7 +12,7 @@ module Heploy
       Heploy::Command::Deploy.staging config, options['verbose']
     end
 
-    desc 'production', 'Deploys your applicationn to your staging server.'
+    desc 'production', 'Deploys your application to your production server.'
     def production
       config = Heploy::Configuration.find
       Heploy::Command::Deploy.production config, options['verbose']
