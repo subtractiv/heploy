@@ -71,7 +71,7 @@ class Heploy::Command::Deploy
 
     def push_to_heroku
       puts "Pushing #{@to_branch_name} branch to #{@app_name}."
-      # @repo.push @to_branch_name, "#{@to_branch_name}:master", true
+      @repo.push @to_branch_name, "#{@to_branch_name}:master", true
       confirm_codebase_push
     rescue Git::GitExecuteError => details
       abandon_ship "Error: could not push to #{@to_branch_name}."
@@ -83,7 +83,9 @@ class Heploy::Command::Deploy
       if latest_local_commit == latest_heroku_commit
         puts "Completed push successfully."
       else
-        puts "Error: pushing to #{@app_name} wasn't successful. Latest local commit is #{latest_local_commit} while the latest Heroku commit is #{latest_heroku_commit}."
+        puts "Error: pushing to #{@app_name} wasn't successful.\n" +
+             "------ Latest local commit: #{latest_local_commit}\n" +
+             "------ Latest Heroku commit: #{latest_heroku_commit}"
       end
     end
 
