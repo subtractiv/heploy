@@ -35,14 +35,16 @@ class Heploy::Command::Deploy
       turn_maintenance_on
       tag_latest_commit
       push_to_heroku
-      @heroku.post_ps @app_name, "rake db:migrate"
-      @heroku.post_ps_restart @app_name
+      migrate_database
+      restart_application      
       turn_maintenance_off
       @repo.checkout @dev_branch
     end
 
     def heroku_client(api_key)
       Heroku::API.new api_key: api_key
+    rescue
+      abandon_ship "Error: could not set up your Heroku client."
     end
 
     def turn_maintenance_on
@@ -101,9 +103,22 @@ class Heploy::Command::Deploy
       end
     end
 
+    def migrate_database
+      @heroku.post_ps @app_name, "rake db:migrate"
+    rescue
+      abandon_ship "Error: could not migrate your database."
+    end
+
+    def restart_application
+      @heroku.post_ps_restart @app_name
+    rescue
+      abandon_ship "Error: could not restart #{@app_name}."
+    end
+
     def abandon_ship(message, &block)
       puts message
       block.call unless block == nil
+      @repo.checkout @dev_branch
       exit
     end
 
