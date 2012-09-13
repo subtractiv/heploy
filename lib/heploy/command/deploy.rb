@@ -24,7 +24,7 @@ class Heploy::Command::Deploy
                   config,
                   verbose
       else
-        abandon_ship "Error: that is not the correct server."
+        abandon_ship "That is not the correct server."
       end
     end
 
@@ -58,7 +58,7 @@ class Heploy::Command::Deploy
     def heroku_client(api_key)
       Heroku::API.new api_key: api_key
     rescue
-      abandon_ship "Error: could not set up your Heroku client."
+      abandon_ship "Could not set up your Heroku client."
     end
 
     def turn_maintenance_on
@@ -66,7 +66,7 @@ class Heploy::Command::Deploy
       if @heroku.get_app_maintenance(@app_name).body['maintenance']
         puts "Turned maintenance mode on."
       else
-        abandon_ship "Error: maintenance mode did not turn on."
+        abandon_ship "Maintenance mode did not turn on."
       end
     end
 
@@ -75,7 +75,7 @@ class Heploy::Command::Deploy
       if !@heroku.get_app_maintenance(@app_name).body['maintenance']
         puts "Turned maintenance mode off."
       else
-        abandon_ship "Error: maintenance mode did not turn off."
+        abandon_ship "Maintenance mode did not turn off."
       end
     end
 
@@ -88,7 +88,7 @@ class Heploy::Command::Deploy
       commit = @repo.add_tag(tag_name).inspect
       puts "Tagged commit #{commit[0,7]} as #{tag_name}."
     rescue Git::GitExecuteError => details
-      abandon_ship "Error: #{details.message.split(": ").last.capitalize}."
+      abandon_ship "#{details.message.split(": ").last.capitalize}."
     end
 
     def delete_tag
@@ -100,7 +100,7 @@ class Heploy::Command::Deploy
       @repo.push @to_branch_name, "#{@to_branch_name}:master", true
       confirm_codebase_push
     rescue Git::GitExecuteError => details
-      abandon_ship "Error: could not push to #{@to_branch_name}." do
+      abandon_ship "Could not push to #{@to_branch_name}." do
         delete_tag
       end
     end
@@ -111,7 +111,7 @@ class Heploy::Command::Deploy
       if latest_local_commit == latest_heroku_commit
         puts "Completed push successfully."
       else
-        abandon_ship "Error: pushing to #{@app_name} wasn't successful.\n------ Latest local commit: #{latest_local_commit}\n------ Latest Heroku commit: #{latest_heroku_commit}" do
+        abandon_ship "Pushing to #{@app_name} wasn't successful.\n------ Latest local commit: #{latest_local_commit}\n------ Latest Heroku commit: #{latest_heroku_commit}" do
           delete_tag
         end
       end
@@ -120,17 +120,17 @@ class Heploy::Command::Deploy
     def migrate_database
       @heroku.post_ps @app_name, "rake db:migrate"
     rescue
-      abandon_ship "Error: could not migrate your database."
+      abandon_ship "Could not migrate your database."
     end
 
     def restart_application
       @heroku.post_ps_restart @app_name
     rescue
-      abandon_ship "Error: could not restart #{@app_name}."
+      abandon_ship "Could not restart #{@app_name}."
     end
 
     def abandon_ship(message, &block)
-      puts message
+      puts "-- Abandoning ship: #{message}"
       block.call unless block == nil
       @repo.checkout @dev_branch unless @repo == nil
       exit
