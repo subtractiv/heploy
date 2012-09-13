@@ -15,11 +15,17 @@ class Heploy::Command::Deploy
     end
 
     def production(config, verbose)
-      deploy_to config.production_app_name,
-                config.staging_branch,
-                config.production_branch,
-                config,
-                verbose
+      print "Server you're deploying to: "
+      input = STDIN.gets.chomp
+      if config.production_app_name == input
+        deploy_to config.production_app_name,
+                  config.staging_branch,
+                  config.production_branch,
+                  config,
+                  verbose
+      else
+        abandon_ship "Error: that is not the correct server."
+      end
     end
 
     private
@@ -126,7 +132,7 @@ class Heploy::Command::Deploy
     def abandon_ship(message, &block)
       puts message
       block.call unless block == nil
-      @repo.checkout @dev_branch
+      @repo.checkout @dev_branch unless @repo == nil
       exit
     end
 
