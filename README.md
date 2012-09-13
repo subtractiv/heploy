@@ -26,9 +26,15 @@ Then run the installer:
 
 You'll have to fill out the configuration file with some application details and your Heroku information.
 
+Bonus! Add an alias:
+
+    alias deploy='bundle exec heploy'
+
+Enjoy typing `$ deploy staging` instead of `$ bundle exec heploy staging` all the time.
+
 ## Usage
 
-I'm trying to keep this is simple as possible
+I'm trying to keep this is simple as possible.
 
 ### Basic usage
 
@@ -36,11 +42,11 @@ Heploy defaults to you using a "dev", "staging" and "production" branch. You can
 
 Deploying to staging:
 
-    $ heploy staging
+    $ bundle exec heploy staging
 
 Deploying to production:
 
-    $ heploy production
+    $ bundle exec heploy production
 
 Simple.
 
