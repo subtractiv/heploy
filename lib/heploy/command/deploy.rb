@@ -23,8 +23,10 @@ class Heploy::Command::Deploy
         @repo = Git.open Dir.pwd
       end
       @dev_branch = @repo.branch config.development_branch
-      @from_branch = @repo.branch from_branch_name
-      @to_branch = @repo.branch to_branch_name
+      @from_branch_name = from_branch_name
+      @to_branch_name = to_branch_name
+      @from_branch = @repo.branch @from_branch_name
+      @to_branch = @repo.branch @to_branch_name
       @heroku = heroku_client config.heroku_api_key
       @app_name = app_name
 
