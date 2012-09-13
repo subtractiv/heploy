@@ -63,12 +63,20 @@ class Heploy::Command::Deploy
       end
     end
 
-    def tag_latest_commit
+    def tag_name
       release = @heroku.get_releases(@app_name).body.last["name"].gsub(/[[:alpha:]]/, "").to_i + 1
-      commit = @repo.add_tag "#{@to_branch_name}-#{release}"
-      puts "Tagged commit #{commit[0,7]} as #{@to_branch_name}-#{release}."
+      "#{@to_branch_name}-#{release}"
+    end
+
+    def tag_latest_commit
+      commit = @repo.add_tag(tag_name).inspect
+      puts "Tagged commit #{commit[0,7]} as #{tag_name}."
     rescue Git::GitExecuteError => details
-      puts "Error: #{details.message.split(": ").last.capitalize}."
+      abandon_ship "Error: #{details.message.split(": ").last.capitalize}."
+    end
+
+    def delete_tag
+      system "git tag #{tag_name} -d"
     end
 
     def push_to_heroku
@@ -76,7 +84,9 @@ class Heploy::Command::Deploy
       @repo.push @to_branch_name, "#{@to_branch_name}:master", true
       confirm_codebase_push
     rescue Git::GitExecuteError => details
-      abandon_ship "Error: could not push to #{@to_branch_name}."
+      abandon_ship "Error: could not push to #{@to_branch_name}." do
+        delete_tag
+      end
     end
 
     def confirm_codebase_push
@@ -85,14 +95,15 @@ class Heploy::Command::Deploy
       if latest_local_commit == latest_heroku_commit
         puts "Completed push successfully."
       else
-        puts "Error: pushing to #{@app_name} wasn't successful.\n" +
-             "------ Latest local commit: #{latest_local_commit}\n" +
-             "------ Latest Heroku commit: #{latest_heroku_commit}"
+        abandon_ship "Error: pushing to #{@app_name} wasn't successful.\n------ Latest local commit: #{latest_local_commit}\n------ Latest Heroku commit: #{latest_heroku_commit}" do
+          delete_tag
+        end
       end
     end
 
-    def abandon_ship(message)
+    def abandon_ship(message, &block)
       puts message
+      block.call unless block == nil
       exit
     end
 
