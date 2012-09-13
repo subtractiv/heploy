@@ -14,6 +14,14 @@ class Heploy::Command::Deploy
                 verbose
     end
 
+    def production(config, verbose)
+      deploy_to config.production_app_name,
+                config.staging_branch,
+                config.production_branch,
+                config,
+                verbose
+    end
+
     private
 
     def deploy_to(app_name, from_branch_name, to_branch_name, config, verbose)
