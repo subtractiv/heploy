@@ -6,21 +6,26 @@ require 'logger'
 class Heploy::Command::Deploy
   class << self
 
-    def staging(c)
-      deploy_to c.staging_app_name,
-                c.development_branch,
-                c.staging_branch,
-                c
+    def staging(config, verbose)
+      deploy_to config.staging_app_name,
+                config.development_branch,
+                config.staging_branch,
+                config,
+                verbose
     end
 
     private
 
-    def deploy_to(app_name, from_branch_name, to_branch_name, c)
-      repo = Git.open Dir.pwd, :log => Logger.new(STDOUT)
-      dev_branch = repo.branch c.development_branch
+    def deploy_to(app_name, from_branch_name, to_branch_name, config, verbose)
+      if verbose
+        repo = Git.open Dir.pwd, :log => Logger.new(STDOUT)
+      else
+        repo = Git.open Dir.pwd
+      end
+      dev_branch = repo.branch config.development_branch
       from_branch = repo.branch from_branch_name
       to_branch = repo.branch to_branch_name
-      heroku = heroku_client c.heroku_api_key
+      heroku = heroku_client config.heroku_api_key
 
       repo.checkout to_branch
       repo.merge from_branch
@@ -42,8 +47,7 @@ class Heploy::Command::Deploy
       if heroku.get_app_maintenance(app_name).body['maintenance']
         puts "Turned maintenance mode on."
       else
-        puts "Error: maintenance mode did not turn on."
-        exit
+        abandon_ship "Error: maintenance mode did not turn on."
       end
     end
 
@@ -52,8 +56,7 @@ class Heploy::Command::Deploy
       if !heroku.get_app_maintenance(app_name).body['maintenance']
         puts "Turned maintenance mode off."
       else
-        puts "Error: maintenance mode did not turn off."
-        exit
+        abandon_ship "Error: maintenance mode did not turn off."
       end
     end
 
@@ -67,11 +70,10 @@ class Heploy::Command::Deploy
 
     def push_to_heroku(repo, heroku, to_branch_name, app_name)
       puts "Pushing #{to_branch_name} branch to #{app_name}."
-      # repo.push to_branch_name, "#{to_branch_name}:master", true
+      repo.push to_branch_name, "#{to_branch_name}:master", true
       confirm_codebase_push(repo, heroku, app_name)
     rescue Git::GitExecuteError => details
-      puts "Error: could not push to #{to_branch_name}."
-      exit
+      abandon_ship "Error: could not push to #{to_branch_name}."
     end
 
     def confirm_codebase_push(repo, heroku, app_name)
@@ -82,6 +84,11 @@ class Heploy::Command::Deploy
       else
         puts "Error: pushing to #{app_name} wasn't successful. Latest local commit is #{latest_local_commit} while the latest Heroku commit is #{latest_heroku_commit}."
       end
+    end
+
+    def abandon_ship(message)
+      puts message
+      exit
     end
 
   end

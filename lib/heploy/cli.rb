@@ -4,10 +4,12 @@ require 'heploy'
 module Heploy
   class CLI < Thor
 
+    method_option :verbose, :type => :boolean, :aliases => "-v"
+
     desc 'staging', 'Deploys your application to your staging server.'
     def staging
       config = Heploy::Configuration.find
-      Heploy::Command::Deploy.staging config
+      Heploy::Command::Deploy.staging config, options['verbose']
     end
 
     desc 'production', 'Deploys your applicationn to your staging server.'
