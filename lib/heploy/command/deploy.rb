@@ -18,71 +18,72 @@ class Heploy::Command::Deploy
 
     def deploy_to(app_name, from_branch_name, to_branch_name, config, verbose)
       if verbose
-        repo = Git.open Dir.pwd, :log => Logger.new(STDOUT)
+        @repo = Git.open Dir.pwd, :log => Logger.new(STDOUT)
       else
-        repo = Git.open Dir.pwd
+        @repo = Git.open Dir.pwd
       end
-      dev_branch = repo.branch config.development_branch
-      from_branch = repo.branch from_branch_name
-      to_branch = repo.branch to_branch_name
-      heroku = heroku_client config.heroku_api_key
+      @dev_branch = @repo.branch config.development_branch
+      @from_branch = @repo.branch from_branch_name
+      @to_branch = @repo.branch to_branch_name
+      @heroku = heroku_client config.heroku_api_key
+      @app_name = app_name
 
-      repo.checkout to_branch
-      repo.merge from_branch
-      turn_maintenance_on heroku, app_name
-      tag_latest_commit repo, heroku, app_name, to_branch_name
-      push_to_heroku repo, heroku, to_branch_name, app_name
-      heroku.post_ps app_name, "rake db:migrate"
-      heroku.post_ps_restart app_name
-      turn_maintenance_off heroku, app_name
-      repo.checkout dev_branch
+      @repo.checkout @to_branch
+      @repo.merge @from_branch
+      turn_maintenance_on
+      tag_latest_commit
+      push_to_heroku
+      @heroku.post_ps @app_name, "rake db:migrate"
+      @heroku.post_ps_restart @app_name
+      turn_maintenance_off
+      @repo.checkout @dev_branch
     end
 
     def heroku_client(api_key)
       Heroku::API.new api_key: api_key
     end
 
-    def turn_maintenance_on(heroku, app_name)
-      heroku.post_app_maintenance app_name, '1'
-      if heroku.get_app_maintenance(app_name).body['maintenance']
+    def turn_maintenance_on
+      @heroku.post_app_maintenance @app_name, '1'
+      if @heroku.get_app_maintenance(@app_name).body['maintenance']
         puts "Turned maintenance mode on."
       else
         abandon_ship "Error: maintenance mode did not turn on."
       end
     end
 
-    def turn_maintenance_off(heroku, app_name)
-      heroku.post_app_maintenance app_name, '0'
-      if !heroku.get_app_maintenance(app_name).body['maintenance']
+    def turn_maintenance_off
+      @heroku.post_app_maintenance @app_name, '0'
+      if !@heroku.get_app_maintenance(@app_name).body['maintenance']
         puts "Turned maintenance mode off."
       else
         abandon_ship "Error: maintenance mode did not turn off."
       end
     end
 
-    def tag_latest_commit(repo, heroku, app_name, to_branch_name)
-      release = heroku.get_releases(app_name).body.last["name"].gsub(/[[:alpha:]]/, "").to_i + 1
-      commit = repo.add_tag "#{to_branch_name}-#{release}"
-      puts "Tagged commit #{commit[0,7]} as #{to_branch_name}-#{release}."
+    def tag_latest_commit
+      release = @heroku.get_releases(@app_name).body.last["name"].gsub(/[[:alpha:]]/, "").to_i + 1
+      commit = @repo.add_tag "#{@to_branch_name}-#{release}"
+      puts "Tagged commit #{commit[0,7]} as #{@to_branch_name}-#{release}."
     rescue Git::GitExecuteError => details
       puts "Error: #{details.message.split(": ").last.capitalize}."
     end
 
-    def push_to_heroku(repo, heroku, to_branch_name, app_name)
-      puts "Pushing #{to_branch_name} branch to #{app_name}."
-      repo.push to_branch_name, "#{to_branch_name}:master", true
-      confirm_codebase_push(repo, heroku, app_name)
+    def push_to_heroku
+      puts "Pushing #{@to_branch_name} branch to #{@app_name}."
+      # @repo.push @to_branch_name, "#{@to_branch_name}:master", true
+      confirm_codebase_push
     rescue Git::GitExecuteError => details
-      abandon_ship "Error: could not push to #{to_branch_name}."
+      abandon_ship "Error: could not push to #{@to_branch_name}."
     end
 
-    def confirm_codebase_push(repo, heroku, app_name)
-      latest_local_commit = repo.log.first.inspect[0,7]
-      latest_heroku_commit = heroku.get_releases(app_name).body.last['commit']
+    def confirm_codebase_push
+      latest_local_commit = @repo.log.first.inspect[0,7]
+      latest_heroku_commit = @heroku.get_releases(@app_name).body.last['commit']
       if latest_local_commit == latest_heroku_commit
         puts "Completed push successfully."
       else
-        puts "Error: pushing to #{app_name} wasn't successful. Latest local commit is #{latest_local_commit} while the latest Heroku commit is #{latest_heroku_commit}."
+        puts "Error: pushing to #{@app_name} wasn't successful. Latest local commit is #{latest_local_commit} while the latest Heroku commit is #{latest_heroku_commit}."
       end
     end
 

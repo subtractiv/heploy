@@ -4,7 +4,7 @@ require 'heploy'
 module Heploy
   class CLI < Thor
 
-    method_option :verbose, :type => :boolean, :aliases => "-v"
+    method_option :verbose, type: :boolean, aliases: "-v", default: false
 
     desc 'staging', 'Deploys your application to your staging server.'
     def staging
